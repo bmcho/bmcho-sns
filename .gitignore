@@ -260,3 +260,5 @@ sns/apps/hashtag/migrations/
 sns/apps/review/migrations/
 sns/apps/post/migrations/
 sns/apps/user/migrations/
+
+sns/apps/core/migrations/

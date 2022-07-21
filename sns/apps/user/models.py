@@ -6,11 +6,12 @@ from apps.core.models import TimeStampModel
 
 # Create your models here.
 class UserManager(BaseUserManager):
-    def create_user(self, email, nickname, password=None):
+    def create_user(self, email, nickname, introduce, password=None):
 
         user = self.model(
             email=self.normalize_email(email),
             nickname=nickname,
+            introduce=introduce,
         )
 
         user.set_password(password)
@@ -33,6 +34,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, TimeStampModel):
     email = models.EmailField(unique=True)
     nickname = models.CharField(max_length=50, unique=False)
+    introduce = models.CharField(max_length=200)
     is_admin = models.BooleanField(default=False)
 
     objects = UserManager()
