@@ -256,3 +256,7 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/python,django
 
 .vscode
+sns/apps/hashtag/migrations/
+sns/apps/review/migrations/
+sns/apps/post/migrations/
+sns/apps/user/migrations/
