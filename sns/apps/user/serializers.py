@@ -1,5 +1,6 @@
 import re
 
+import black
 from django.contrib.auth.hashers import check_password
 from rest_framework import exceptions, serializers
 from rest_framework.views import status
@@ -50,10 +51,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             raise_exception = exceptions.APIException(detail="inaccurate user info")
             raise_exception.status_code = status.HTTP_400_BAD_REQUEST
             raise raise_exception
-
         instance.nickname = validated_data.get('nickname', instance.nickname)
         instance.introduce = validated_data.get('introduce', instance.introduce)
-        instance.save(raise_exception=True)
+        instance.save()
         return instance
 
     class Meta:

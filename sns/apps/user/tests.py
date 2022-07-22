@@ -1,6 +1,12 @@
 import json
 
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_202_ACCEPTED,
+    HTTP_400_BAD_REQUEST,
+    HTTP_401_UNAUTHORIZED,
+)
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import BlacklistedToken, OutstandingToken
 
@@ -119,7 +125,7 @@ class UserSignInTest(APITestCase):
     def test_failure_signin_password(self):
         """로그인 실패 - 비빌먼호 오입력
 
-        [성공] status_code = 400
+        [실패] status_code = 400
         """
         data = {'email': 'testAdmin@gamil.com', 'password': 'A123a12aaa3!123'}
 
@@ -159,7 +165,7 @@ class UserSignInTest(APITestCase):
     def test_failure_signout_header_accesshtoken(self):
         """로그아웃 실패 - 잘못된 토큰
 
-        [성공] status_code = 401
+        [실패] status_code = 401
         """
         data = {'email': 'testAdmin@gamil.com', 'password': 'abcdABC123!'}
 
@@ -183,3 +189,122 @@ class UserSignInTest(APITestCase):
         self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
         self.assertEqual(response.data['messages'][0]['token_class'], 'AccessToken')
         self.assertEqual(response.data['code'], 'token_not_valid')
+
+
+class UserUpdateTest(APITestCase):
+    """유저 수정 테스트
+
+    Writer: 조병민
+    Date: 2022-07-21
+
+    """
+
+    def setUp(self):
+        self.data = {
+            'email': 'testAdmin@gamil.com',
+            'nickname': 'testAdmin',
+            'introduce': 'test info',
+            'password': 'abcdABC123!',
+        }
+        self.user = User.objects.create_user(**self.data)
+
+    def test_success_user_update_nickname_introduce(self):
+        """유저 업데이트 성공
+
+        [성공] status_code = 202
+        """
+        data = {'email': 'testAdmin@gamil.com', 'password': 'abcdABC123!'}
+
+        response = self.client.post('/users/signin', data=json.dumps(data), content_type='application/json')
+        refresh_token = response.data['refresh']
+        access_token = response.data['access']
+
+        '''header 추가 시 주의 사항
+
+        1. HTTP_ 접두사를 꼭 붙여야 한다.
+        2. header 명은 대문자로 작성해야한다.
+        '''
+
+        data = {'nickname': 'testtest', 'introduce': 'modified intro', 'password': 'abcdABC123!'}
+
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {access_token}"}
+        response = self.client.patch(
+            '/users/update',
+            data=json.dumps(data),
+            content_type='application/json',
+            **headers,
+        )
+
+        user = User.objects.filter(email='testAdmin@gamil.com').first()
+        self.assertEqual(response.status_code, HTTP_202_ACCEPTED)
+        self.assertEqual(user.nickname, 'testtest')
+        self.assertEqual(user.introduce, 'modified intro')
+
+    def test_failure_user_update_nickname(self):
+        """유저 업데이트 실패 - introduce null
+
+        [실패] status_code = 400
+        """
+        data = {'email': 'testAdmin@gamil.com', 'password': 'abcdABC123!'}
+
+        response = self.client.post('/users/signin', data=json.dumps(data), content_type='application/json')
+        refresh_token = response.data['refresh']
+        access_token = response.data['access']
+
+        data = {'nickname': 'testtest', 'introduce': None, 'password': 'abcdABC123!'}
+
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {access_token}"}
+        response = self.client.patch(
+            '/users/update',
+            data=json.dumps(data),
+            content_type='application/json',
+            **headers,
+        )
+
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_failure_user_update_introduce(self):
+        """유저 업데이트 실패 - nickname null
+
+        [실패] status_code = 400
+        """
+        data = {'email': 'testAdmin@gamil.com', 'password': 'abcdABC123!'}
+
+        response = self.client.post('/users/signin', data=json.dumps(data), content_type='application/json')
+        refresh_token = response.data['refresh']
+        access_token = response.data['access']
+
+        data = {'nickname': '', 'introduce': 'modified intro', 'password': 'abcdABC123!'}
+
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {access_token}"}
+        response = self.client.patch(
+            '/users/update',
+            data=json.dumps(data),
+            content_type='application/json',
+            **headers,
+        )
+
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+
+    def test_failure_user_update_token(self):
+        """유저 업데이트 실패 - 잘못된 토큰
+
+        [성공] status_code = 401
+        """
+        data = {'email': 'testAdmin@gamil.com', 'password': 'abcdABC123!'}
+
+        response = self.client.post('/users/signin', data=json.dumps(data), content_type='application/json')
+        refresh_token = response.data['refresh']
+        access_token = response.data['access']
+
+        data = {'nickname': 'testtest', 'introduce': 'modified intro', 'password': 'abcdABC123!'}
+
+        headers = {"HTTP_AUTHORIZATION": f"Bearer {access_token} failure"}
+        response = self.client.patch(
+            '/users/update',
+            data=json.dumps(data),
+            content_type='application/json',
+            **headers,
+        )
+
+        self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)

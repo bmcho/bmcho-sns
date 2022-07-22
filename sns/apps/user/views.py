@@ -25,14 +25,13 @@ class UserSignUpView(APIView):
 
 
 class UserUpdateView(APIView):
-    users = User.objects.all()
 
     permission_classes = [IsAuthenticated]
 
     @api_view(['PATCH'])
     @swagger_auto_schema(request_body=UserUpdateSerializer)
-    def user_modify(self, request):
-        user = self.users.filter(user=request.user)
+    def user_update(request):
+        user = User.objects.filter(id=request.user.id).first()
 
         serializer = UserUpdateSerializer(user, data=request.data)
         serializer.is_valid(raise_exception=True)
