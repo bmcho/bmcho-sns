@@ -16,6 +16,23 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+schema_url_patterns = [path('users', include('apps.user.urls'), include('apps.post.urls'))]
+
+schema_view_v1 = get_schema_view(
+    openapi.Info(
+        title='sns',
+        default_version='v1',
+        description="sns API",
+    ),
+    public=True,
+    permission_classes=[AllowAny],
+    patterns=schema_url_patterns,
+)
+
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('users', include('apps.user.urls')),
+    path('posts', include('apps.post.urls')),
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view_v1.without_ui(cache_timeout=0), name='schema-json'),
+    re_path(r'^swagger$', schema_view_v1.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^redoc$', schema_view_v1.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
