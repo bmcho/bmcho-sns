@@ -46,7 +46,6 @@ class PostViewSet(viewsets.ModelViewSet):
         user = request.user
         data = request.data
         request_get_hashtag = data.pop('hashtag')
-
         try:
             new_post = Post.objects.create(user=user, title=data['title'], contents=data['contents'])
 
@@ -63,6 +62,7 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as ex:
             print(ex)
+
             raise APIException(detail='error occurred', code=ex)
 
     @transaction.atomic
@@ -141,7 +141,7 @@ class PostViewSet(viewsets.ModelViewSet):
                 .values('id')
             )
 
-            queryset = self.queryset.filter(id__in=subquery).order_by(ordering)
+            queryset = self.queryset.filter(id__in=subquery).order_by(ordering)[offset:limite]
             serializer = PostSearchSerializer(queryset, many=True)
             return Response({'data': serializer.data}, status=status.HTTP_200_OK)
         except Exception as ex:
