@@ -1,6 +1,3 @@
-from dataclasses import field
-from importlib.resources import contents
-
 from rest_framework import serializers
 
 from apps.hashtag.serializers import HashtagsSerializer
@@ -22,8 +19,10 @@ class PostSerializer(serializers.ModelSerializer):
     hashtag = serializers.SlugRelatedField(many=True, read_only=True, slug_field="hashtag_name")
 
     def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
+        instance = super(PostSerializer, self).update(instance, validated_data)
+        instance.save()
+        return instance
 
     class Meta:
         model = Post
-        fields = ['user', 'title', 'contents', 'hashtag']
+        fields = ['user', 'id', 'title', 'contents', 'hashtag']
