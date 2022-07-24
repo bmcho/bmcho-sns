@@ -14,4 +14,4 @@ class Post(TimeStampModel):
 
 class PostLike(TimeStampModel):
     user = models.ForeignKey("user.User", on_delete=models.CASCADE)
-    post = models.ForeignKey("Post", on_delete=models.CASCADE)
+    post = models.ForeignKey("Post", related_name='like', on_delete=models.CASCADE)
