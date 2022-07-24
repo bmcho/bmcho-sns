@@ -79,7 +79,7 @@ MIDDLEWARE = [
 
 
 ROOT_URLCONF = 'sns.urls'
-# AUTH_USER_MODEL = 'user.User'
+AUTH_USER_MODEL = 'user.User'
 APPEND_SLASH = False
 
 TEMPLATES = [
