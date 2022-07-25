@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.hashtag.serializers import HashtagsSerializer
+from apps.review.serializers import ReviewSerializers
 from apps.user.serializers import UserSerializer
 
 from .models import Post, PostLike
@@ -49,13 +50,14 @@ class PostDetailSearchSerializer(serializers.ModelSerializer):
     contents = serializers.CharField()
     hashtag = serializers.SlugRelatedField(many=True, read_only=True, slug_field="hashtag_name")
     like = serializers.SerializerMethodField()
+    reviews = ReviewSerializers(many=True)
 
     def get_like(self, instance):
         return instance.like.count()
 
     class Meta:
         model = Post
-        fields = ['user', 'id', 'title', 'contents', 'hashtag', 'like', 'hits', 'created_at']
+        fields = ['user', 'id', 'title', 'contents', 'hashtag', 'like', 'hits', 'reviews', 'created_at']
 
 
 class PostLikeSerializer(serializers.ModelSerializer):

@@ -8,3 +8,6 @@ class Review(TimeStampModel):
     post = models.ForeignKey('post.Post', related_name='reviews', on_delete=models.CASCADE)
     user = models.ForeignKey('user.User', related_name='reviews', on_delete=models.CASCADE)
     review = models.CharField(null=False, max_length=200)
+
+    class Meta:
+        ordering = ['-created_at']
