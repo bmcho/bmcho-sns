@@ -16,6 +16,13 @@ from apps.review.serializers import (
 
 # Create your views here.
 class ReviewViewset(viewsets.ModelViewSet):
+    """Review CRUD ViewSet
+
+    Wirter:조병민
+    Data: 2022-07-25
+
+    """
+
     queryset = Review.objects.order_by('-created_at').all()
     serializer_class = ReviewSerializers
     permission_classes = [IsAuthenticated]

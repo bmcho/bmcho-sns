@@ -12,8 +12,13 @@ from apps.core.util import get_client_ip
 from apps.hashtag.serializers import HashtagsSerializer
 
 from .models import Post, PostLike
-from .serializers import (PostDetailSearchSerializer, PostLikeSerializer,
-                          PostSearchSerializer, PostSerializer)
+from .serializers import (
+    PostCreateCheckSerializer,
+    PostDetailSearchSerializer,
+    PostLikeSerializer,
+    PostSearchSerializer,
+    PostSerializer,
+)
 
 
 # Create your views here.
@@ -49,21 +54,23 @@ class PostViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
-        user = request.user
-        data = request.data
-        request_get_hashtag = data.pop('hashtag')
+        check_serializer = PostCreateCheckSerializer(data=request.data)
+        check_serializer.is_valid(raise_exception=True)
+
         try:
-            new_post = Post.objects.create(user=user, title=data['title'], contents=data['contents'])
+            user = request.user
+            data = request.data
+            request_get_hashtag = data.pop('hashtag').replace('#', '').split(',')
 
-            if request_get_hashtag:
-                for h in request_get_hashtag:
-                    hashtag_serializer = HashtagsSerializer(data={'hashtag_name': h})
-
-                    hashtag_serializer.is_valid(raise_exception=True)
-                    hashtag_obj = hashtag_serializer.save()
-                    new_post.hashtag.add(hashtag_obj)
-
-            serializer = PostSerializer(new_post)
+            serializer = PostSerializer(
+                data={
+                    'title': data['title'],
+                    'contents': data['contents'],
+                },
+                context={'user': user, 'hashtag': request_get_hashtag},
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except Exception as ex:
@@ -104,12 +111,19 @@ class PostViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def destroy(self, request, *args, **kwargs):
         user = request.user
-        post_obj = self.queryset.filter(id=kwargs.get('post_id'), user=user).first()
-
-        if not post_obj:
-            return Response({'detail': 'not the author'}, status=status.HTTP_401_UNAUTHORIZED)
+        post_id = kwargs.get('post_id')
 
         try:
+            post_obj = self.queryset.filter(id=post_id).first()
+
+            if not post_obj:
+                return Response({'detail': 'not existed post'}, status=status.HTTP_404_NOT_FOUND)
+
+            post_obj = self.queryset.filter(id=kwargs.get('post_id'), user=user).first()
+
+            if not post_obj:
+                return Response({'detail': 'not the author'}, status=status.HTTP_401_UNAUTHORIZED)
+
             post_obj.delete()
             return Response({'detail': 'success, deleted post'}, status=status.HTTP_204_NO_CONTENT)
         except Exception as ex:
@@ -120,7 +134,7 @@ class PostViewSet(viewsets.ModelViewSet):
         # params
         page = int(request.GET.get('page', 1))
         search = request.GET.get('search', None)
-        hashtag = request.GET.get('hashtag', None).split(',')
+        hashtag = request.GET.get('hashtag', None)
         ordering = request.GET.get('ordering', '-created_at')
 
         try:
@@ -135,19 +149,21 @@ class PostViewSet(viewsets.ModelViewSet):
 
             if hashtag:
                 q_hashtag = Q()
-                for h in hashtag:
+                for h in hashtag.replce('#', '').split(','):
                     q_hashtag.add(Q(hashtag__hashtag_name=h), q_hashtag.OR)
                 q.add(q_hashtag, q.AND)
 
-            subquery = (
-                self.queryset.filter(q)
-                .values('id')
-                .annotate(count=Count('id'))
-                .filter(count__gte=len(hashtag))
-                .values('id')
-            )
+                subquery = (
+                    self.queryset.filter(q)
+                    .values('id')
+                    .annotate(count=Count('id'))
+                    .filter(count__gte=len(hashtag))
+                    .values('id')
+                )
+                queryset = self.queryset.filter(id__in=subquery).order_by(ordering)[offset:limite]
+            else:
+                queryset = self.queryset.filter(q).order_by(ordering)[offset:limite]
 
-            queryset = self.queryset.filter(id__in=subquery).order_by(ordering)[offset:limite]
             serializer = PostSearchSerializer(queryset, many=True)
             return Response({'data': serializer.data}, status=status.HTTP_200_OK)
         except Exception as ex:
