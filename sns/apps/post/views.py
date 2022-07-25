@@ -12,7 +12,8 @@ from apps.core.util import get_client_ip
 from apps.hashtag.serializers import HashtagsSerializer
 
 from .models import Post, PostLike
-from .serializers import PostDetailSearchSerializer, PostLikeSerializer, PostSearchSerializer, PostSerializer
+from .serializers import (PostDetailSearchSerializer, PostLikeSerializer,
+                          PostSearchSerializer, PostSerializer)
 
 
 # Create your views here.
@@ -34,7 +35,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     queryset = Post.objects.all()
     serializer_class = None
-    MAX_PAGE = 10
+    __max_Page = 10
 
     def get_permissions(self):
         """
@@ -124,7 +125,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
         try:
             q = Q()
-            offset, limite = (page - 1) * self.MAX_PAGE, page * self.MAX_PAGE
+            offset, limite = (page - 1) * self.__max_Page, page * self.__max_Page
 
             if search:
                 q_search = Q()
@@ -201,7 +202,7 @@ class PostLikeViewSet(viewsets.ModelViewSet):
                 serializer.is_valid(raise_exception=True)
                 serializer.save()
 
-            return Response({'detail': 'sucess, Accepted'}, status=status.HTTP_202_ACCEPTED)
+            return Response({'detail': 'sucess, accepted'}, status=status.HTTP_202_ACCEPTED)
 
         except Exception as ex:
             print(ex)
