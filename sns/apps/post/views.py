@@ -189,9 +189,6 @@ class PostViewSet(viewsets.ModelViewSet):
                 post_obj.hits += 1
                 post_obj.save()
 
-            # post_obj.hits += 1
-            # post_obj.save()
-
             serializer = PostDetailSearchSerializer(post_obj)
             return Response({'data': serializer.data}, status=status.HTTP_200_OK)
         except Exception as ex:

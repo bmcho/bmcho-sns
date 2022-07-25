@@ -65,4 +65,4 @@ class UserSignOutView(APIView):
         token = RefreshToken(Refresh_token)
         token.blacklist()
 
-        return Response({"detail": "success, signout"}, status=status.HTTP_200_OK)
+        return Response({"detail": "success, sign-out"}, status=status.HTTP_200_OK)

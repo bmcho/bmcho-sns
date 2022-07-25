@@ -101,6 +101,8 @@ class ReviewViewset(viewsets.ModelViewSet):
 
             review_obj.delete()
 
+            return Response({'detail': 'not the author'}, status=status.HTTP_401_UNAUTHORIZED)
+
         except Exception as ex:
             print(ex)
             raise APIException(detail='error occurred', code=ex)
