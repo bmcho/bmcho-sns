@@ -14,10 +14,12 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import pymysql
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
+pymysql.install_as_MySQLdb()
 
 
 def get_env_variable(var_name):
@@ -62,13 +64,7 @@ THIRD_PARTY_APPS = [
     'drf_yasg',
 ]
 
-LOCAL_APPS = [
-    'apps.user',
-    'apps.post',
-    'apps.review',
-    'apps.hashtag',
-    'apps.core',
-]
+LOCAL_APPS = ['apps.user', 'apps.post', 'apps.hashtag', 'apps.review']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -123,10 +119,20 @@ else:
             'NAME': get_env_variable('MYSQL_DATABASE'),
             'USER': 'root',
             'PASSWORD': get_env_variable('MYSQL_ROOT_PASSWORD'),
-            'HOST': 'localhost',
+            'HOST': 'database',
             'PORT': get_env_variable('MYSQL_TCP_PORT'),
         }
     }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://redis',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -162,8 +168,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'static/'
-
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 

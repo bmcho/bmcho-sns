@@ -257,8 +257,13 @@ cython_debug/
 
 .vscode
 sns/apps/hashtag/migrations/
-sns/apps/review/migrations/
+
 sns/apps/post/migrations/
+
+sns/apps/review/migrations/
+
 sns/apps/user/migrations/
 
-sns/apps/core/migrations/
+cache/
+
+sns/static/

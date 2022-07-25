@@ -1,12 +1,17 @@
 import re
 
-import black
 from django.contrib.auth.hashers import check_password
 from rest_framework import exceptions, serializers
 from rest_framework.views import status
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from .models import User
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'nickname', 'introduce']
 
 
 class UserSignUpSerializer(serializers.ModelSerializer):

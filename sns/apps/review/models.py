@@ -2,8 +2,12 @@ from django.db import models
 
 from apps.core.models import TimeStampModel
 
+
 # Create your models here.
 class Review(TimeStampModel):
-    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
-    post = models.ForeignKey('post.Post', on_delete=models.CASCADE)
-    review = models.CharField(max_length=2000, null=False)
+    post = models.ForeignKey('post.Post', related_name='reviews', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', related_name='reviews', on_delete=models.CASCADE)
+    review = models.CharField(null=False, max_length=200)
+
+    class Meta:
+        ordering = ['-created_at']
