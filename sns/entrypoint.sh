@@ -1,0 +1,1 @@
+gunicorn --bind 0:8000 sns.wsgi:application

@@ -1,58 +1,69 @@
 version: "3.8"
+
 services:
-  web-server:
-    container_name: web-server
+  app:
     build:
       context: ./sns
       dockerfile: dockerfile
+    restart: always
+    env_file: 
+      - ./sns/.env
+    command:
+      - bash
+      - -c
+      - |
+        python manage.py wait_for_db -t 120
+        python manage.py migrate
+        echo yes | python manage.py collectstatic
+        gunicorn --bind 0:8000 sns.wsgi:application
+    stdin_open: true
     volumes:
       - ./sns:/srv/server
-    restart: always
     expose:
       - "8000"
-    networks:
-      - nginx_bridge
-      - database_bridge
     depends_on:
       - database
 
   database:
-    container_name: database
     image: mysql:8.0
     restart: unless-stopped
     env_file:
-      - .env
+      - ./sns/.env
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
-    expose:
-      - "3306"
+    ports:
+      - 3306:3306
     volumes:
-      - ./data/db:/var/lib/mysql
+      - ./data/db:/var/lib/mysql-filse
     environment:
-      - MYSQL_TCP_PORT=${MYSQL_TCP_PORT}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_TCP_PORT=${MYSQL_TCP_PORT}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-    networks:
-      - database_bridge
 
   nginx:
-    container_name: nginx
-    image: nginx:latest
-    volumes: 
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-    restart: unless-stopped
+    image: nginx:1.21
+    restart: always
+    volumes:
+      - ./config/nginx:/etc/nginx/conf.d
+      - ./sns/static:/static
     ports:
-      - 80:80
+      - "80:80"
     depends_on:
-      - web-server
-    networks:
-      - nginx_bridge
+      - app
 
-networks:
-  nginx_bridge:
-    driver: bridge
-  database_bridge:
-    driver: bridge
+  redis:
+    container_name: redis
+    image: redis:alpine
+    restart: always
+    command: redis-server --port 6379
+    expose:
+      - "6379"
+    ports:
+      - 6379:6379
+    volumes: 
+      - ./cache:/data
+    depends_on:
+      - app

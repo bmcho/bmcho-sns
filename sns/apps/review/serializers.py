@@ -24,6 +24,7 @@ class ReviewSerializers(serializers.ModelSerializer):
     review = serializers.CharField(required=True)
 
     def create(self, validated_data):
+        print("!")
         instance = Review.objects.create(**validated_data)
         return instance
 
