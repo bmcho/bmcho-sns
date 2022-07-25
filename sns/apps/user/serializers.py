@@ -1,3 +1,5 @@
+import re
+
 from django.contrib.auth.hashers import check_password
 from rest_framework import exceptions, serializers
 from rest_framework.views import status

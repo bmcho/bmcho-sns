@@ -39,7 +39,7 @@ class PostViewSet(viewsets.ModelViewSet):
     """
 
     queryset = Post.objects.all()
-    serializer_class = None
+    serializer_class = PostSerializer
     __max_Page = 10
 
     def get_permissions(self):
@@ -181,14 +181,16 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'not existed post'}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            # if not cache.get(user_ip):
-            #     cache.set(user_ip, 300)
+            cache_data = cache.get(str(user_ip))
+            print(cache_data)
+            if not cache_data:
+                cache.set(str(user_ip), 'true', 300)
 
-            #     post_obj.hits += 1
-            #     post_obj.save()
+                post_obj.hits += 1
+                post_obj.save()
 
-            post_obj.hits += 1
-            post_obj.save()
+            # post_obj.hits += 1
+            # post_obj.save()
 
             serializer = PostDetailSearchSerializer(post_obj)
             return Response({'data': serializer.data}, status=status.HTTP_200_OK)
@@ -199,7 +201,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
 class PostLikeViewSet(viewsets.ModelViewSet):
     queryset = PostLike.objects.all()
-    serializer_class = None
+    serializer_class = PostLikeSerializer
     permission_classes = [IsAuthenticated]
 
     @transaction.atomic
