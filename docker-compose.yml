@@ -47,7 +47,7 @@ services:
     ports:
       - 80:80
     depends_on:
-      - app
+      - web-server
     networks:
       - nginx_bridge
 

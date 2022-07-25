@@ -263,3 +263,5 @@ sns/apps/post/migrations/
 sns/apps/review/migrations/
 
 sns/apps/user/migrations/
+
+cache/

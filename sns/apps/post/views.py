@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count, Q
 from rest_framework import status, viewsets
@@ -5,10 +6,11 @@ from rest_framework.exceptions import APIException
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from apps.core.util import get_client_ip
 from apps.hashtag.serializers import HashtagsSerializer
 
-from .models import Post
-from .serializers import PostSearchSerializer, PostSerializer
+from .models import Post, PostLike
+from .serializers import PostDetailSearchSerializer, PostSearchSerializer, PostSerializer
 
 
 # Create your views here.
@@ -18,17 +20,18 @@ class PostViewSet(viewsets.ModelViewSet):
     Write: 조병민
     Date: 2022-07-22
 
-    GET: list ('')
+    GET: list ('') - 리스트 검색
         query_params = (search: 검색 키워드, page: 페이지, hashtag: 해시태그, author: 작성자, ordering: 정렬기준)
             ordering - default: -created_at
                        select : like, -like, created_at
-    POST: create ('')
-    PATCH: partial_update ('/post_id')
-    DELETE: destroy ('/post_id')
+    GET: retrieve ('/post_id') - 상세 검색
+    POST: create ('') - 생성
+    PATCH: partial_update ('/post_id') - 수정
+    DELETE: destroy ('/post_id') - 삭제
     """
 
     queryset = Post.objects.all()
-    serializer_class = PostSerializer
+    serializer_class = None
     MAX_PAGE = 10
 
     def get_permissions(self):
@@ -69,7 +72,7 @@ class PostViewSet(viewsets.ModelViewSet):
     def partial_update(self, request, *args, **kwargs):
         user = request.user
         data = request.data
-        post_obj = self.queryset.filter(id=kwargs['post_id'], user=user).get()
+        post_obj = self.queryset.filter(id=kwargs['post_id'], user=user)
 
         if not post_obj:
             return Response({'detail': 'not the author'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -98,7 +101,7 @@ class PostViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     def destroy(self, request, *args, **kwargs):
         user = request.user
-        post_obj = self.queryset.filter(id=kwargs.get('post_id'), user=user).get()
+        post_obj = self.queryset.filter(id=kwargs.get('post_id'), user=user).first()
 
         if not post_obj:
             return Response({'detail': 'not the author'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -148,5 +151,28 @@ class PostViewSet(viewsets.ModelViewSet):
             print(ex)
             raise APIException(detail='error occurred', code=ex)
 
+    # TODO: nginx 적용 후 IP 구별 후 과도한 조회수 증가 금지 로직 구현
+    @transaction.atomic
     def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
+
+        user_ip = get_client_ip(request)
+        post_obj = self.queryset.filter(id=kwargs.get('post_id')).first()
+
+        if not post_obj:
+            return Response({'detail': 'not existed post'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            # if not cache.get(user_ip):
+            #     cache.set(user_ip, 300)
+
+            #     post_obj.hits += 1
+            #     post_obj.save()
+
+            post_obj.hits += 1
+            post_obj.save()
+
+            serializer = PostDetailSearchSerializer(post_obj)
+            return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+        except Exception as ex:
+            print(ex)
+            raise APIException(detail='error occurred', code=ex)
