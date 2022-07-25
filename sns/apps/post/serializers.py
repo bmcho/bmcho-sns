@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.hashtag.serializers import HashtagsSerializer
 from apps.user.serializers import UserSerializer
 
-from .models import Post
+from .models import Post, PostLike
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -56,3 +56,13 @@ class PostDetailSearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['user', 'id', 'title', 'contents', 'hashtag', 'like', 'hits', 'created_at']
+
+
+class PostLikeSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        instans = PostLike.objects.create(**validated_data)
+        return instans
+
+    class Meta:
+        model = PostLike
+        fields = ['user', 'post']
