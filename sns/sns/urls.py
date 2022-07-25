@@ -19,8 +19,6 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework.permissions import AllowAny
 
-schema_url_patterns = [path('users', include('apps.user.urls'), include('apps.post.urls'))]
-
 schema_view_v1 = get_schema_view(
     openapi.Info(
         title='sns',
@@ -29,7 +27,6 @@ schema_view_v1 = get_schema_view(
     ),
     public=True,
     permission_classes=[AllowAny],
-    patterns=schema_url_patterns,
 )
 
 

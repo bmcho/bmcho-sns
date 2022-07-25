@@ -7,6 +7,12 @@ from apps.user.serializers import UserSerializer
 from .models import Post, PostLike
 
 
+class PostCreateCheckSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=50)
+    contents = serializers.CharField(allow_blank=False)
+    hashtag = serializers.CharField()
+
+
 class PostSerializer(serializers.ModelSerializer):
     """게시글 작성, 수정 serializer
 
@@ -19,6 +25,21 @@ class PostSerializer(serializers.ModelSerializer):
     contents = serializers.CharField(allow_blank=False)
     hashtag = serializers.SlugRelatedField(many=True, read_only=True, slug_field="hashtag_name")
 
+    def create(self, validated_data):
+        user = self.context.get('user')
+        hashtag = self.context.get('hashtag')
+
+        instance = Post.objects.create(user=user, title=validated_data['title'], contents=validated_data['contents'])
+
+        for h in hashtag:
+            hashtag_serializer = HashtagsSerializer(data={'hashtag_name': h})
+
+            hashtag_serializer.is_valid(raise_exception=True)
+            hashtag_obj = hashtag_serializer.save()
+            instance.hashtag.add(hashtag_obj)
+
+        return instance
+
     def update(self, instance, validated_data):
         instance = super(PostSerializer, self).update(instance, validated_data)
         instance.save()
@@ -30,6 +51,12 @@ class PostSerializer(serializers.ModelSerializer):
 
 
 class PostSearchSerializer(serializers.ModelSerializer):
+    """게시글 검색 serializer
+
+    Writer: 조병민
+    Date: 2022-07-24
+    """
+
     user = UserSerializer(read_only=True)
     title = serializers.CharField()
     hashtag = serializers.SlugRelatedField(many=True, read_only=True, slug_field="hashtag_name")
@@ -43,8 +70,13 @@ class PostSearchSerializer(serializers.ModelSerializer):
         fields = ['user', 'id', 'title', 'hashtag', 'like', 'created_at']
 
 
-# TODO: 추후Review 추가 예정
 class PostDetailSearchSerializer(serializers.ModelSerializer):
+    """게시글 상세 검색 serializer
+
+    Writer: 조병민
+    Date: 2022-07-24
+    """
+
     user = UserSerializer(read_only=True)
     title = serializers.CharField()
     contents = serializers.CharField()
@@ -61,6 +93,12 @@ class PostDetailSearchSerializer(serializers.ModelSerializer):
 
 
 class PostLikeSerializer(serializers.ModelSerializer):
+    """게시글 좋아요 생성 serializer
+
+    Writer: 조병민
+    Date: 2022-07-24
+    """
+
     def create(self, validated_data):
         instans = PostLike.objects.create(**validated_data)
         return instans
