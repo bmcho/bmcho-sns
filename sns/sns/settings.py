@@ -63,7 +63,7 @@ THIRD_PARTY_APPS = [
     'django_filters',
 ]
 
-LOCAL_APPS = ['apps.user', 'apps.post', 'apps.hashtag']
+LOCAL_APPS = ['apps.user', 'apps.post', 'apps.hashtag', 'apps.review']
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
