@@ -1,3 +1,5 @@
+from venv import create
+
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Count, Q
@@ -10,7 +12,7 @@ from apps.core.util import get_client_ip
 from apps.hashtag.serializers import HashtagsSerializer
 
 from .models import Post, PostLike
-from .serializers import PostDetailSearchSerializer, PostSearchSerializer, PostSerializer
+from .serializers import PostDetailSearchSerializer, PostLikeSerializer, PostSearchSerializer, PostSerializer
 
 
 # Create your views here.
@@ -173,6 +175,34 @@ class PostViewSet(viewsets.ModelViewSet):
 
             serializer = PostDetailSearchSerializer(post_obj)
             return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+        except Exception as ex:
+            print(ex)
+            raise APIException(detail='error occurred', code=ex)
+
+
+class PostLikeViewSet(viewsets.ModelViewSet):
+    queryset = PostLike.objects.all()
+    serializer_class = None
+    permission_classes = [IsAuthenticated]
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        post_id = kwargs['post_id']
+
+        try:
+            post_obj = Post.objects.filter(id=post_id).first()
+            post_like_obj = self.queryset.filter(user=user, post=post_obj)
+
+            if post_like_obj:
+                post_like_obj.delete()
+            else:
+                serializer = PostLikeSerializer(data={'user': user.id, 'post': post_obj.id})
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+
+            return Response({'detail': 'sucess, Accepted'}, status=status.HTTP_202_ACCEPTED)
+
         except Exception as ex:
             print(ex)
             raise APIException(detail='error occurred', code=ex)
