@@ -133,11 +133,11 @@
 
 |Index|Method|URL|QueryParams|Permission|Description|
 |----|----|----|----|----|----|
-|유저관리|
+|<td colspan=3>유저관리|
 |1|POST|/api/sign-up||AllowAny|회원가입|
 |2|POST|/api/sign-in||AllowAny|로그인|
 |3|PUT|/api/sign-out||Authenticated|로그아웃|
-|게시글 관리|
+|<td colspan=3>게시글 관리|
 |4|POST|/api/posts||Authenticated|게시글 작성
 |5|GET|/api/posts/<post_id:int>||AllowAny|게시글 상세 조회
 |6|PATCH|/api/posts/<post_id:int>||Authenticated|게시글 수정
