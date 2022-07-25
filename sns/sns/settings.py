@@ -14,10 +14,12 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+import pymysql
 from django.core.exceptions import ImproperlyConfigured
 from dotenv import find_dotenv, load_dotenv
 
 load_dotenv(find_dotenv())
+pymysql.install_as_MySQLdb()
 
 
 def get_env_variable(var_name):
@@ -60,7 +62,6 @@ THIRD_PARTY_APPS = [
     'rest_framework_simplejwt.token_blacklist',  # token blacklist
     'corsheaders',
     'drf_yasg',
-    'django_filters',
 ]
 
 LOCAL_APPS = ['apps.user', 'apps.post', 'apps.hashtag', 'apps.review']
@@ -168,7 +169,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
@@ -201,9 +202,6 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    # 'DEFAULT_FILTER_BACKENDS': [
-    #     'django_filters.rest_framework.DjangoFilterBackend',
-    # ],
 }
 
 SWAGGER_SETTINGS = {
