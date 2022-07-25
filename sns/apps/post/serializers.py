@@ -26,3 +26,33 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['user', 'id', 'title', 'contents', 'hashtag']
+
+
+class PostSearchSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    title = serializers.CharField()
+    hashtag = serializers.SlugRelatedField(many=True, read_only=True, slug_field="hashtag_name")
+    like = serializers.SerializerMethodField()
+
+    def get_like(self, instance):
+        return instance.like.count()
+
+    class Meta:
+        model = Post
+        fields = ['user', 'id', 'title', 'hashtag', 'like', 'created_at']
+
+
+# TODO: 추후Review 추가 예정
+class PostDetailSearchSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    title = serializers.CharField()
+    contents = serializers.CharField()
+    hashtag = serializers.SlugRelatedField(many=True, read_only=True, slug_field="hashtag_name")
+    like = serializers.SerializerMethodField()
+
+    def get_like(self, instance):
+        return instance.like.count()
+
+    class Meta:
+        model = Post
+        fields = ['user', 'id', 'title', 'contents', 'hashtag', 'like', 'hits', 'created_at']
