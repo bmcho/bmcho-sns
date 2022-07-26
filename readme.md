@@ -30,7 +30,7 @@
 
     ![GitHub](https://img.shields.io/badge/github-%23121011.svg?logo=github&logoColor=white)
     ![Git](https://img.shields.io/badge/-git-F05032?logo=git&logoColor=white)
-    
+    ![JWT](https://img.shields.io/badge/JWT-black?style=for-flat&logo=JSON%20web%20tokens)
     <br>
 
 ## ✅ 프로젝트 소개
